@@ -23,7 +23,6 @@ function App() {
   const [sphereHit, setSphereHit] = useState(false);
   const [ripples, setRipples] = useState<number[]>([]);
   const [screenShake, setScreenShake] = useState(false);
-  const [buyPulse, setBuyPulse] = useState(false);
   
   const projectileIdRef = useRef(0);
   const rippleIdRef = useRef(0);
@@ -33,17 +32,17 @@ function App() {
   const nextCost = shooterCount === 0 ? 1 : Math.pow(10, shooterCount);
 
   const generatePosition = useCallback((): { x: number; y: number } => {
-    const margin = 8;
+    const margin = 10;
     let x: number, y: number, attempts = 0;
     
     do {
       x = margin + Math.random() * (100 - 2 * margin);
-      y = 15 + Math.random() * (75 - 15);
+      y = 18 + Math.random() * (70 - 18);
       attempts++;
       const dx = x - 50;
       const dy = y - 55;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist > 30) break;
+      if (dist > 28) break;
     } while (attempts < 50);
     
     return { x, y };
@@ -51,20 +50,20 @@ function App() {
 
   const handleSphereClick = useCallback(() => {
     setScore(prev => prev + 1);
-    setClickScale(0.92);
+    setClickScale(0.94);
     setSphereHit(true);
     setScreenShake(true);
     
-    setTimeout(() => setClickScale(1.04), 60);
-    setTimeout(() => setClickScale(1), 180);
-    setTimeout(() => setSphereHit(false), 200);
-    setTimeout(() => setScreenShake(false), 120);
+    setTimeout(() => setClickScale(1.03), 50);
+    setTimeout(() => setClickScale(1), 150);
+    setTimeout(() => setSphereHit(false), 150);
+    setTimeout(() => setScreenShake(false), 100);
 
     const rippleId = rippleIdRef.current++;
     setRipples(prev => [...prev, rippleId]);
     setTimeout(() => {
       setRipples(prev => prev.filter(r => r !== rippleId));
-    }, 800);
+    }, 700);
   }, []);
 
   const buyShooter = useCallback(() => {
@@ -79,18 +78,15 @@ function App() {
         shooting: false,
       };
       setShooters(prev => [...prev, newShooter]);
-      setBuyPulse(true);
-      setTimeout(() => setBuyPulse(false), 300);
 
       setTimeout(() => {
         setShooters(prev => prev.map(s => 
           s.id === newShooter.id ? { ...s, filled: true } : s
         ));
-      }, 200);
+      }, 150);
     }
   }, [score, nextCost, generatePosition]);
 
-  // Auto-shooting loop
   useEffect(() => {
     const filledShooters = shooters.filter(s => s.filled);
     if (filledShooters.length === 0) {
@@ -118,7 +114,7 @@ function App() {
       }]);
 
       const startTime = Date.now();
-      const duration = 450;
+      const duration = 400;
       
       const animate = () => {
         const elapsed = Date.now() - startTime;
@@ -139,7 +135,7 @@ function App() {
           setRipples(prev => [...prev, rippleId]);
           setTimeout(() => {
             setRipples(prev => prev.filter(r => r !== rippleId));
-          }, 800);
+          }, 700);
 
           setProjectiles(prev => prev.filter(p => p.id !== projId));
           
@@ -153,7 +149,7 @@ function App() {
     };
 
     let currentIndex = 0;
-    const intervalTime = Math.max(250, 1200 / filledShooters.length);
+    const intervalTime = Math.max(300, 1400 / filledShooters.length);
     
     shootIntervalRef.current = window.setInterval(() => {
       shootOne(currentIndex);
@@ -172,32 +168,36 @@ function App() {
 
   return (
     <div 
-      className={`relative w-full h-screen bg-white overflow-hidden select-none ${screenShake ? 'animate-shake' : ''}`}
+      className={`relative w-full h-screen overflow-hidden select-none crt-screen ${screenShake ? 'animate-shake' : ''}`}
     >
-      {/* Score - large bold numbers above sphere */}
-      <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50">
+      {/* CRT Scanlines overlay */}
+      <div className="absolute inset-0 pointer-events-none z-[100] scanlines" />
+      
+      {/* CRT Vignette */}
+      <div className="absolute inset-0 pointer-events-none z-[99] vignette" />
+
+      {/* Score - flat retro style */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50">
         <div 
-          className="text-center font-black tabular-nums text-black"
+          className={`text-center font-black tabular-nums text-black retro-text ${sphereHit ? 'score-hit' : ''}`}
           style={{ 
-            fontSize: 'clamp(4rem, 10vw, 8rem)',
+            fontSize: 'clamp(3.5rem, 9vw, 7rem)',
             lineHeight: 1,
-            letterSpacing: '-0.02em',
-            textShadow: sphereHit ? '0 0 30px rgba(0,0,0,0.3)' : 'none',
-            transition: 'text-shadow 0.15s ease',
+            letterSpacing: '-0.01em',
           }}
         >
           {score.toLocaleString()}
         </div>
       </div>
 
-      {/* Main Giant Sphere - Cookie Clicker style */}
+      {/* Main Sphere - flat style */}
       <div 
         className="absolute top-1/2 left-1/2 z-10 cursor-pointer"
         style={{
           transform: `translate(-50%, -50%) scale(${clickScale})`,
-          transition: 'transform 0.12s cubic-bezier(0.4, 0, 0.2, 1)',
-          width: 'min(75vw, 75vh)',
-          height: 'min(75vw, 75vh)',
+          transition: 'transform 0.1s ease-out',
+          width: 'min(55vw, 55vh)',
+          height: 'min(55vw, 55vh)',
         }}
         onClick={handleSphereClick}
       >
@@ -205,94 +205,60 @@ function App() {
         {ripples.map(id => (
           <div
             key={id}
-            className="absolute top-1/2 left-1/2 rounded-full border-[3px] border-black/15"
+            className="absolute top-1/2 left-1/2 rounded-full border-[2px] border-black/20"
             style={{
-              width: '110%',
-              height: '110%',
-              transform: 'translate(-50%, -50%) scale(0.6)',
-              animation: 'ripple 0.8s ease-out forwards',
+              width: '115%',
+              height: '115%',
+              transform: 'translate(-50%, -50%) scale(0.7)',
+              animation: 'ripple 0.7s ease-out forwards',
             }}
           />
         ))}
 
-        {/* Shadow under sphere */}
-        <div 
-          className="absolute bottom-[-8%] left-1/2 -translate-x-1/2 rounded-full"
-          style={{
-            width: '80%',
-            height: '15%',
-            background: 'radial-gradient(ellipse, rgba(0,0,0,0.15) 0%, transparent 70%)',
-            filter: 'blur(10px)',
-          }}
-        />
-
-        {/* The Giant Sphere */}
+        {/* The Sphere - flat black circle */}
         <div
           className="w-full h-full rounded-full relative"
           style={{
-            background: `radial-gradient(circle at 38% 32%, #4a4a4a 0%, #222 25%, #0a0a0a 55%, #000 75%)`,
+            background: '#111',
             boxShadow: sphereHit 
-              ? '0 0 100px rgba(0,0,0,0.8), 0 0 200px rgba(0,0,0,0.3), inset 0 0 60px rgba(255,255,255,0.1)' 
-              : '0 30px 100px rgba(0,0,0,0.5), 0 0 60px rgba(0,0,0,0.2), inset 0 -15px 40px rgba(0,0,0,0.9)',
+              ? '0 0 0 4px rgba(0,0,0,0.1), 0 8px 30px rgba(0,0,0,0.3)' 
+              : '0 8px 30px rgba(0,0,0,0.2)',
             transition: 'box-shadow 0.15s ease',
           }}
         >
-          {/* Main specular highlight */}
+          {/* Subtle flat highlight */}
           <div 
             className="absolute rounded-full"
             style={{
-              top: '12%',
-              left: '20%',
-              width: '30%',
-              height: '22%',
-              background: 'radial-gradient(ellipse, rgba(255,255,255,0.3) 0%, transparent 70%)',
-              transform: 'rotate(-15deg)',
-            }}
-          />
-          {/* Small bright spot */}
-          <div 
-            className="absolute rounded-full"
-            style={{
-              top: '18%',
-              left: '28%',
-              width: '8%',
-              height: '6%',
-              background: 'radial-gradient(ellipse, rgba(255,255,255,0.5) 0%, transparent 70%)',
-            }}
-          />
-          {/* Subtle bottom reflection */}
-          <div 
-            className="absolute rounded-full"
-            style={{
-              bottom: '18%',
-              right: '22%',
-              width: '12%',
-              height: '8%',
-              background: 'radial-gradient(ellipse, rgba(255,255,255,0.08) 0%, transparent 70%)',
+              top: '15%',
+              left: '22%',
+              width: '25%',
+              height: '18%',
+              background: 'rgba(255,255,255,0.06)',
+              borderRadius: '50%',
             }}
           />
         </div>
 
-        {/* Click burst ring */}
+        {/* Click burst ring - flat style */}
         {sphereHit && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
             <div 
-              className="rounded-full border-[4px] border-black/25"
+              className="rounded-full border-[2px] border-black/30"
               style={{
-                width: '120%',
-                height: '120%',
-                animation: 'burst-ring 0.5s ease-out forwards',
+                width: '125%',
+                height: '125%',
+                animation: 'burst-ring 0.4s ease-out forwards',
               }}
             />
           </div>
         )}
       </div>
 
-      {/* Projectiles */}
+      {/* Projectiles - flat style */}
       {projectiles.map(proj => {
         const currentX = proj.startX + (50 - proj.startX) * proj.progress;
         const currentY = proj.startY + (55 - proj.startY) * proj.progress;
-        const size = 8 + Math.sin(proj.progress * Math.PI) * 5;
         return (
           <div
             key={proj.id}
@@ -306,24 +272,15 @@ function App() {
             <div 
               className="rounded-full bg-black"
               style={{ 
-                width: `${size}px`, 
-                height: `${size}px`,
-                boxShadow: '0 0 15px rgba(0,0,0,0.7), 0 0 5px rgba(0,0,0,0.9)',
-              }}
-            />
-            <div 
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/15"
-              style={{
-                width: `${size * 2.5}px`,
-                height: `${size * 2.5}px`,
-                filter: 'blur(5px)',
+                width: '10px', 
+                height: '10px',
               }}
             />
           </div>
         );
       })}
 
-      {/* Shooters (circles scattered around) */}
+      {/* Shooters - flat circles */}
       {shooters.map(shooter => (
         <div
           key={shooter.id}
@@ -331,64 +288,44 @@ function App() {
           style={{
             left: `${shooter.x}%`,
             top: `${shooter.y}%`,
-            transform: `translate(-50%, -50%) scale(${shooter.shooting ? 1.4 : 1})`,
-            transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: `translate(-50%, -50%) scale(${shooter.shooting ? 1.3 : 1})`,
+            transition: 'transform 0.15s ease-out',
           }}
         >
           <div
-            className="w-14 h-14 rounded-full shooter-fill"
+            className="rounded-full shooter-fill"
             style={{
-              borderWidth: '3px',
+              width: '40px',
+              height: '40px',
+              borderWidth: '2.5px',
               borderStyle: 'solid',
-              borderColor: '#000',
-              background: shooter.filled 
-                ? 'radial-gradient(circle at 40% 35%, #444 0%, #111 50%, #000 100%)' 
-                : 'transparent',
-              boxShadow: shooter.shooting 
-                ? '0 0 25px rgba(0,0,0,0.6), 0 0 50px rgba(0,0,0,0.2)' 
-                : shooter.filled 
-                  ? '0 3px 12px rgba(0,0,0,0.3)' 
-                  : 'none',
+              borderColor: '#111',
+              background: shooter.filled ? '#111' : 'transparent',
+              boxShadow: shooter.shooting ? '0 0 0 3px rgba(0,0,0,0.1)' : 'none',
             }}
           />
         </div>
       ))}
 
-      {/* Buy Button - just a circle, no text */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50">
+      {/* Buy Button - flat circle */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50">
         <button
           onClick={buyShooter}
           disabled={!canBuy}
-          className={`relative rounded-full transition-all duration-200 ${
+          className={`rounded-full transition-all duration-150 ${
             canBuy
               ? 'cursor-pointer hover:scale-110 active:scale-90'
-              : 'cursor-not-allowed opacity-40'
+              : 'cursor-not-allowed opacity-30'
           }`}
           style={{
-            width: '70px',
-            height: '70px',
-            borderWidth: '4px',
+            width: '56px',
+            height: '56px',
+            borderWidth: '3px',
             borderStyle: 'solid',
-            borderColor: canBuy ? '#000' : '#ccc',
-            background: canBuy 
-              ? 'radial-gradient(circle at 40% 35%, #444 0%, #111 50%, #000 100%)' 
-              : 'transparent',
-            boxShadow: canBuy 
-              ? (buyPulse ? '0 0 40px rgba(0,0,0,0.8)' : '0 4px 20px rgba(0,0,0,0.4)')
-              : 'none',
-            transform: buyPulse ? 'scale(1.2)' : 'scale(1)',
-            transition: 'all 0.2s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            borderColor: canBuy ? '#111' : '#999',
+            background: canBuy ? '#111' : 'transparent',
           }}
-        >
-          {/* Cost indicator - small dots showing cost level */}
-          {canBuy && (
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex gap-0.5">
-              {[...Array(Math.min(shooterCount + 1, 5))].map((_, i) => (
-                <div key={i} className="w-1.5 h-1.5 rounded-full bg-black" />
-              ))}
-            </div>
-          )}
-        </button>
+        />
       </div>
     </div>
   );

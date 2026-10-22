@@ -10,55 +10,102 @@
 
 html, body {
   overflow: hidden;
-  background: white;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f5f2eb;
   width: 100%;
   height: 100%;
 }
 
+/* CRT Screen base */
+.crt-screen {
+  background: #f5f2eb;
+}
+
+/* CRT Scanlines */
+.scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+}
+
+/* CRT Vignette */
+.vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+}
+
+/* Retro text style */
+.retro-text {
+  font-family: 'Courier New', 'Lucida Console', monospace;
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.1);
+}
+
+.score-hit {
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Animations */
 @keyframes ripple {
   0% {
-    transform: translate(-50%, -50%) scale(0.7);
-    opacity: 0.4;
-    border-width: 3px;
+    transform: translate(-50%, -50%) scale(0.75);
+    opacity: 0.5;
   }
   100% {
-    transform: translate(-50%, -50%) scale(2.2);
+    transform: translate(-50%, -50%) scale(2);
     opacity: 0;
-    border-width: 1px;
   }
 }
 
 @keyframes burst-ring {
   0% {
-    transform: translate(-50%, -50%) scale(0.85);
-    opacity: 0.5;
-    border-width: 4px;
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0.4;
   }
   100% {
-    transform: translate(-50%, -50%) scale(1.6);
+    transform: translate(-50%, -50%) scale(1.5);
     opacity: 0;
-    border-width: 1px;
   }
 }
 
 @keyframes shake {
   0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(-3px, 2px); }
-  50% { transform: translate(3px, -1px); }
-  75% { transform: translate(-2px, 3px); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, 2px); }
 }
 
 .animate-shake {
-  animation: shake 0.12s ease-in-out;
+  animation: shake 0.1s ease-in-out;
 }
 
+/* Shooter fill transition */
 .shooter-fill {
-  transition: background 0.5s ease, box-shadow 0.3s ease;
+  transition: background 0.3s ease, box-shadow 0.2s ease;
 }
 
+/* Hide scrollbar */
 ::-webkit-scrollbar {
   display: none;
+}
+
+/* CRT flicker - very subtle */
+@keyframes crt-flicker {
+  0% { opacity: 0.97; }
+  5% { opacity: 0.95; }
+  10% { opacity: 0.98; }
+  15% { opacity: 0.96; }
+  20% { opacity: 0.99; }
+  100% { opacity: 0.98; }
+}
+
+.crt-screen {
+  animation: crt-flicker 4s infinite;
 }
 
 body {
